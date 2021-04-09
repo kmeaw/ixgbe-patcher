@@ -2,13 +2,13 @@
 runpatch()
 {
 	FILE="$1"
-	POS=$(grep -obUaP "\xC7\x83\xD0\x05\x00\x00\x19\x00\x00\x00\x41\xBC\xED\xFF\xFF\xFF" "$FILE" | cut -d: -f1)
+	POS=$(LANG=C LC_ALL=C grep -obUaP -m1 "\xC7\x83\xD0\x05\x00\x00\x19\x00\x00\x00\x41\xBC\xED\xFF\xFF\xFF" "$FILE" | cut -d: -f1)
 	if test -z "$POS"; then
 		echo "Needle is missing, aborting..." >&2
 		return
 	fi
 	printf "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x41\xBC\x00\x00\x00\x00" | dd of="$FILE" bs=1 seek="$POS" conv=notrunc
-	POS=$(grep -obUa "~Module signature appended~" "$FILE" | cut -d: -f1)
+	POS=$(LANG=C LC_ALL=C grep -obUa "~Module signature appended~" "$FILE" | cut -d: -f1)
 	if test -n "$POS"; then
 		echo "Disabling signature check..." >&2
 		printf "~No more signature checks.~" | dd of="$FILE" bs=1 seek="$POS" conv=notrunc
