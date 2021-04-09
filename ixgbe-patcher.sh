@@ -18,21 +18,29 @@ runpatch()
 detect()
 {
 	echo "Checking $1..."
-	MD5=$(md5sum - < $1 | cut -d' ' -f1)
-	if [ "$MD5" = "05968682e5aff64234f4960029029e81" ]; then
+	MD5=$(md5sum - < "$1" | cut -d' ' -f1)
+	case "$MD5" in
+	05968682e5aff64234f4960029029e81)
 		echo "Known version, patching..."
-		runpatch $1
-	elif [ "$MD5" = "793b5db3a0b7744535bd26dfa2012506" ]; then
+		runpatch "$1"
+		;;
+	793b5db3a0b7744535bd26dfa2012506|ad746dc22b709eb0aafb5ac2d302bbe0)
 		echo "Already patched."
-	else
+		;;
+	*)
 		echo "Unknown version: $MD5."
-	fi
+		;;
+	esac
 }
 
 main()
 {
-	detect /lib/modules/$(uname -r)/kernel/drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+	if test -f "$1"; then
+		detect "${1}"
+	else
+		echo "$0: cannot open file: $1" >&2
+		exit 1
+	fi
 }
 
-main "${1:-}"
-
+main "${1:-/lib/modules/$(uname -r)/kernel/drivers/net/ethernet/intel/ixgbe/ixgbe.ko}"
